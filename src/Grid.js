@@ -15,6 +15,79 @@ const grid_size = 3;
 // 0, 0, 0,
 // 0, 0, 0
 
+const getRows = (arr, size) => {
+  const rows = [];
+  for (let i = 0; i < arr.length; i++) {
+    if (i % size === 0) {
+      const row = [];
+      for (let j = 0; j < size; j++) {
+        const originalPos = i + j;
+        row.push(arr[originalPos]);
+      }
+      rows.push(row);
+    }
+  }
+  return rows;
+};
+
+const getCols = (arr, size) => {
+  const cols = [];
+
+  const steps = [];
+  for (let i = 0; i < size; i++) {
+    steps.push(i * size);
+  }
+  for (let i = 0; i < size; i++) {
+    let col = [];
+    for (let j = 0; j < size; j++) {
+      console.log(j);
+      const originalPos = i + steps[j];
+      col.push(arr[originalPos]);
+    }
+    cols.push(col);
+    col = [];
+  }
+
+  return cols;
+};
+
+const removeZeros = (arr) => {
+  let strippedZeros = [...arr];
+  console.log('STRIPPED: ', strippedZeros);
+  strippedZeros = strippedZeros.filter((n) => n !== 0);
+
+  return strippedZeros;
+};
+
+const doTheLogic = (arr) => {
+  const originalSize = arr.length;
+
+  // remove zeros
+  let noZerosArr = removeZeros(arr);
+
+  // combine numbers
+  for (let index = noZerosArr.length - 1; index >= 0; index--) {
+    console.log('index: ', index);
+
+    const prevIndex = index - 1;
+    console.log('noZerosArr val: ', noZerosArr[index]);
+
+    if (prevIndex >= 0 && noZerosArr[index] === noZerosArr[prevIndex]) {
+      noZerosArr[index] = noZerosArr[index] * 2;
+      noZerosArr[prevIndex] = 0;
+    }
+  }
+  noZerosArr = removeZeros(noZerosArr);
+  console.log('noZerosArr: ', noZerosArr);
+  // prepend zeros
+  const noZerosArrSize = noZerosArr.length;
+  const finalArr = [...Array(originalSize - noZerosArrSize).fill(0)].concat(
+    noZerosArr
+  );
+
+  return finalArr;
+};
+
 // const initialReducerState = [2, 2, 2, 0, 0, 2, 0, 0, 2];
 const initialReducerState = [0, 0, 2, 2, 0, 2, 0, 2, 2];
 
@@ -25,94 +98,35 @@ const logicReducer = (state, action) => {
   switch (action.type) {
     case CASES.UP:
       console.log('swiped up');
-      for (let index = 0; index < cellsCount; index++) {
-        const currIndex = Math.abs(0 - index);
-        const cell = updatedState[currIndex];
-        const normalizedIndex = currIndex + 1;
-        const neighgourIndex = currIndex - grid_size;
-        const atEdge = grid_size >= normalizedIndex;
-
-        if (!atEdge) {
-          const currVal = cell;
-          const neighBourVal = updatedState[neighgourIndex];
-          if (currVal === neighBourVal) {
-            updatedState[neighgourIndex] = currVal + neighBourVal;
-            updatedState[currIndex] = 0;
-          } else if (neighBourVal === 0) {
-            updatedState[neighgourIndex] = currVal;
-            updatedState[currIndex] = 0;
-          }
-        }
-      }
       return [...updatedState];
     case CASES.DOWN:
       console.log('swiped DOWN');
-      for (let index = 0; index < cellsCount; index++) {
-        const currIndex = Math.abs(cellsCount - index);
-        const cell = updatedState[currIndex];
-        const normalizedIndex = currIndex + 1;
-        const neighgourIndex = currIndex + grid_size;
-        const atEdge = grid_size > cellsCount - normalizedIndex;
-
-        if (!atEdge) {
-          const currVal = cell;
-          const neighBourVal = updatedState[neighgourIndex];
-          if (currVal === neighBourVal) {
-            updatedState[neighgourIndex] = currVal + neighBourVal;
-
-            updatedState[currIndex] = 0;
-          } else if (neighBourVal === 0) {
-            updatedState[neighgourIndex] = currVal;
-
-            updatedState[currIndex] = 0;
-          }
-        }
-      }
+      let cols = getCols(updatedState, grid_size);
+      cols = cols.map((col) => {
+        return doTheLogic(col);
+      });
+      console.log('finished cols: ', JSON.stringify(cols, null, 2));
+      // const cols = getCols(updatedState, grid_size);
       return [...updatedState];
     case CASES.LEFT:
       console.log('swiped LEFT');
-      for (let index = 0; index < cellsCount; index++) {
-        const currIndex = Math.abs(0 - index);
-        const cell = updatedState[currIndex];
-        const normalizedIndex = currIndex + 1;
-        const neighgourIndex = currIndex - 1;
-        const atEdge = normalizedIndex % grid_size === 1;
+      let rows_l = getRows(updatedState, grid_size);
+      rows_l = rows_l.map((row) => {
+        const reversedRow = [...row].reverse();
+        return [...doTheLogic(reversedRow)].reverse();
+      });
 
-        if (!atEdge) {
-          const currVal = cell;
-          const neighBourVal = updatedState[neighgourIndex];
-          if (currVal === neighBourVal) {
-            updatedState[neighgourIndex] = currVal + neighBourVal;
-            updatedState[currIndex] = 0;
-          } else if (neighBourVal === 0) {
-            updatedState[neighgourIndex] = currVal;
-            updatedState[currIndex] = 0;
-          }
-        }
-      }
-
+      console.log('finished rows_l: ', JSON.stringify(rows_l, null, 2));
+      updatedState = [...rows_l.flat()];
       return [...updatedState];
     case CASES.RIGHT:
       console.log('swiped RIGHT');
-      for (let index = 0; index < cellsCount; index++) {
-        const currIndex = Math.abs(0 - index);
-        const cell = updatedState[currIndex];
-        const normalizedIndex = currIndex + 1;
-        const neighgourIndex = currIndex + 1;
-        const atEdge = normalizedIndex % grid_size === 0;
-
-        if (!atEdge) {
-          const currVal = cell;
-          const neighBourVal = updatedState[neighgourIndex];
-          if (currVal === neighBourVal) {
-            updatedState[neighgourIndex] = currVal + neighBourVal;
-            updatedState[currIndex] = 0;
-          } else if (neighBourVal === 0) {
-            updatedState[neighgourIndex] = currVal;
-            updatedState[currIndex] = 0;
-          }
-        }
-      }
+      let rows_r = getRows(updatedState, grid_size);
+      rows_r = rows_r.map((row) => {
+        return doTheLogic(row);
+      });
+      console.log('finished rows_r: ', JSON.stringify(rows_r, null, 2));
+      updatedState = [...rows_r.flat()];
       return [...updatedState];
     default:
       return updatedState;
@@ -170,6 +184,22 @@ const Grid = () => {
       console.log(`calcX: ${calculatedX}, calcY: ${calculatedY}`);
     }
   }, [lastXY[0]]);
+
+  useEffect(() => {
+    console.log('State updated');
+    let timeoutID = null;
+
+    if (timeoutID === null) {
+      timeoutID = setTimeout(() => {
+        setLastXY([null, null]);
+      }, 500);
+    }
+
+    return () => {
+      clearTimeout(timeoutID);
+      timeoutID = null;
+    };
+  }, [state]);
 
   return (
     <div>
