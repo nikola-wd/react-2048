@@ -15,75 +15,104 @@ const grid_size = 3;
 // 0, 0, 0,
 // 0, 0, 0
 
-const initialReducerState = [0, 0, 2, 0, 0, 2, 0, 0, 0];
+// const initialReducerState = [2, 2, 2, 0, 0, 2, 0, 0, 2];
+const initialReducerState = [0, 0, 2, 2, 0, 2, 0, 2, 2];
 
 const logicReducer = (state, action) => {
   let updatedState = [...state];
+  const cellsCount = updatedState.length;
 
   switch (action.type) {
     case CASES.UP:
       console.log('swiped up');
+      for (let index = 0; index < cellsCount; index++) {
+        const currIndex = Math.abs(0 - index);
+        const cell = updatedState[currIndex];
+        const normalizedIndex = currIndex + 1;
+        const neighgourIndex = currIndex - grid_size;
+        const atEdge = grid_size >= normalizedIndex;
+
+        if (!atEdge) {
+          const currVal = cell;
+          const neighBourVal = updatedState[neighgourIndex];
+          if (currVal === neighBourVal) {
+            updatedState[neighgourIndex] = currVal + neighBourVal;
+            updatedState[currIndex] = 0;
+          } else if (neighBourVal === 0) {
+            updatedState[neighgourIndex] = currVal;
+            updatedState[currIndex] = 0;
+          }
+        }
+      }
       return [...updatedState];
     case CASES.DOWN:
       console.log('swiped DOWN');
+      for (let index = 0; index < cellsCount; index++) {
+        const currIndex = Math.abs(cellsCount - index);
+        const cell = updatedState[currIndex];
+        const normalizedIndex = currIndex + 1;
+        const neighgourIndex = currIndex + grid_size;
+        const atEdge = grid_size > cellsCount - normalizedIndex;
+
+        if (!atEdge) {
+          const currVal = cell;
+          const neighBourVal = updatedState[neighgourIndex];
+          if (currVal === neighBourVal) {
+            updatedState[neighgourIndex] = currVal + neighBourVal;
+
+            updatedState[currIndex] = 0;
+          } else if (neighBourVal === 0) {
+            updatedState[neighgourIndex] = currVal;
+
+            updatedState[currIndex] = 0;
+          }
+        }
+      }
       return [...updatedState];
     case CASES.LEFT:
       console.log('swiped LEFT');
-      for (let index = updatedState.length - 1; index >= 0; index--) {
-        const cell = updatedState[index];
-        const normalizedIndex = index + 1;
+      for (let index = 0; index < cellsCount; index++) {
+        const currIndex = Math.abs(0 - index);
+        const cell = updatedState[currIndex];
+        const normalizedIndex = currIndex + 1;
+        const neighgourIndex = currIndex - 1;
         const atEdge = normalizedIndex % grid_size === 1;
 
         if (!atEdge) {
           const currVal = cell;
-          const neighBourVal = updatedState[index - 1];
+          const neighBourVal = updatedState[neighgourIndex];
           if (currVal === neighBourVal) {
-            updatedState[index - 1] = currVal + neighBourVal;
-            updatedState[index] = 0;
+            updatedState[neighgourIndex] = currVal + neighBourVal;
+            updatedState[currIndex] = 0;
           } else if (neighBourVal === 0) {
-            updatedState[index - 1] = currVal;
-            updatedState[index] = 0;
+            updatedState[neighgourIndex] = currVal;
+            updatedState[currIndex] = 0;
           }
         }
-
-        console.log(
-          'val: ',
-          cell,
-          ' - index: ',
-          normalizedIndex,
-          ' - ',
-          atEdge
-        );
       }
 
       return [...updatedState];
     case CASES.RIGHT:
       console.log('swiped RIGHT');
-      updatedState.forEach((cell, index) => {
-        const normalizedIndex = index + 1;
+      for (let index = 0; index < cellsCount; index++) {
+        const currIndex = Math.abs(0 - index);
+        const cell = updatedState[currIndex];
+        const normalizedIndex = currIndex + 1;
+        const neighgourIndex = currIndex + 1;
         const atEdge = normalizedIndex % grid_size === 0;
 
         if (!atEdge) {
           const currVal = cell;
-          const neighBourVal = updatedState[index + 1];
+          const neighBourVal = updatedState[neighgourIndex];
           if (currVal === neighBourVal) {
-            updatedState[index + 1] = currVal + neighBourVal;
-            updatedState[index] = 0;
+            updatedState[neighgourIndex] = currVal + neighBourVal;
+            updatedState[currIndex] = 0;
           } else if (neighBourVal === 0) {
-            updatedState[index + 1] = currVal;
-            updatedState[index] = 0;
+            updatedState[neighgourIndex] = currVal;
+            updatedState[currIndex] = 0;
           }
         }
-
-        console.log(
-          'val: ',
-          cell,
-          ' - index: ',
-          normalizedIndex,
-          ' - ',
-          atEdge
-        );
-      });
+      }
       return [...updatedState];
     default:
       return updatedState;
