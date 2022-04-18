@@ -40,7 +40,6 @@ const getCols = (arr, size) => {
   for (let i = 0; i < size; i++) {
     let col = [];
     for (let j = 0; j < size; j++) {
-      console.log(j);
       const originalPos = i + steps[j];
       col.push(arr[originalPos]);
     }
@@ -53,7 +52,7 @@ const getCols = (arr, size) => {
 
 const removeZeros = (arr) => {
   let strippedZeros = [...arr];
-  console.log('STRIPPED: ', strippedZeros);
+
   strippedZeros = strippedZeros.filter((n) => n !== 0);
 
   return strippedZeros;
@@ -67,10 +66,7 @@ const doTheLogic = (arr) => {
 
   // combine numbers
   for (let index = noZerosArr.length - 1; index >= 0; index--) {
-    console.log('index: ', index);
-
     const prevIndex = index - 1;
-    console.log('noZerosArr val: ', noZerosArr[index]);
 
     if (prevIndex >= 0 && noZerosArr[index] === noZerosArr[prevIndex]) {
       noZerosArr[index] = noZerosArr[index] * 2;
@@ -78,7 +74,7 @@ const doTheLogic = (arr) => {
     }
   }
   noZerosArr = removeZeros(noZerosArr);
-  console.log('noZerosArr: ', noZerosArr);
+
   // prepend zeros
   const noZerosArrSize = noZerosArr.length;
   const finalArr = [...Array(originalSize - noZerosArrSize).fill(0)].concat(
@@ -91,22 +87,60 @@ const doTheLogic = (arr) => {
 // const initialReducerState = [2, 2, 2, 0, 0, 2, 0, 0, 2];
 const initialReducerState = [0, 0, 2, 2, 0, 2, 0, 2, 2];
 
+const spawnNumberAndGetFinalArr = (arr) => {
+  let newArr = [...arr];
+  const genRandomIndex = (arr) => Math.floor(Math.random() * newArr.length);
+  let randomIndex = genRandomIndex(arr);
+  while (newArr[randomIndex] !== 0) {
+    randomIndex = genRandomIndex(arr);
+  }
+
+  newArr[randomIndex] = 2;
+
+  return newArr;
+};
+
 const logicReducer = (state, action) => {
   let updatedState = [...state];
-  const cellsCount = updatedState.length;
 
   switch (action.type) {
     case CASES.UP:
-      console.log('swiped up');
+      console.log('swiped UP');
+
+      let cols_u = getCols(updatedState, grid_size);
+      cols_u = cols_u.map((col) => doTheLogic(col));
+      cols_u = cols_u.map((col) => {
+        const reversedCol = [...col].reverse();
+        return [...doTheLogic(reversedCol)].reverse();
+      });
+
+      let finishedArrUp = [];
+      for (let i = 0; i < grid_size; i++) {
+        const col = [];
+        for (let j = 0; j < grid_size; j++) {
+          col.push(cols_u[j][i]);
+        }
+        finishedArrUp.push(col);
+      }
+      updatedState = finishedArrUp.flat();
+      updatedState = spawnNumberAndGetFinalArr(updatedState);
       return [...updatedState];
     case CASES.DOWN:
       console.log('swiped DOWN');
-      let cols = getCols(updatedState, grid_size);
-      cols = cols.map((col) => {
-        return doTheLogic(col);
-      });
-      console.log('finished cols: ', JSON.stringify(cols, null, 2));
-      // const cols = getCols(updatedState, grid_size);
+      let cols_d = getCols(updatedState, grid_size);
+      cols_d = cols_d.map((col) => doTheLogic(col));
+
+      let finishedArrDown = [];
+      for (let i = 0; i < grid_size; i++) {
+        const col = [];
+        for (let j = 0; j < grid_size; j++) {
+          col.push(cols_d[j][i]);
+        }
+        finishedArrDown.push(col);
+      }
+      updatedState = finishedArrDown.flat();
+      updatedState = spawnNumberAndGetFinalArr(updatedState);
+
       return [...updatedState];
     case CASES.LEFT:
       console.log('swiped LEFT');
@@ -116,8 +150,8 @@ const logicReducer = (state, action) => {
         return [...doTheLogic(reversedRow)].reverse();
       });
 
-      console.log('finished rows_l: ', JSON.stringify(rows_l, null, 2));
       updatedState = [...rows_l.flat()];
+      updatedState = spawnNumberAndGetFinalArr(updatedState);
       return [...updatedState];
     case CASES.RIGHT:
       console.log('swiped RIGHT');
@@ -125,8 +159,8 @@ const logicReducer = (state, action) => {
       rows_r = rows_r.map((row) => {
         return doTheLogic(row);
       });
-      console.log('finished rows_r: ', JSON.stringify(rows_r, null, 2));
       updatedState = [...rows_r.flat()];
+      updatedState = spawnNumberAndGetFinalArr(updatedState);
       return [...updatedState];
     default:
       return updatedState;
@@ -148,8 +182,6 @@ const Grid = () => {
     const { clientX, clientY } = e;
 
     setLastXY([clientX, clientY]);
-
-    // console.log(clientX, clientY);
     return;
   };
 
@@ -176,17 +208,13 @@ const Grid = () => {
         } else if (larger[0] === 'y') {
           direction = larger[1] < 0 ? CASES.DOWN : CASES.UP;
         }
-        console.log('larger: ', larger);
       }
 
       dispatch({ type: direction });
-
-      console.log(`calcX: ${calculatedX}, calcY: ${calculatedY}`);
     }
   }, [lastXY[0]]);
 
   useEffect(() => {
-    console.log('State updated');
     let timeoutID = null;
 
     if (timeoutID === null) {
