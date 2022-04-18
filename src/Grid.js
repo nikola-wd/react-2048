@@ -1,4 +1,4 @@
-import React, { useState, useReducer } from 'react';
+import React, { useState, useReducer, useEffect } from 'react';
 import Cell from './Cell';
 
 const CASES = {
@@ -54,10 +54,41 @@ const Grid = () => {
     const { clientX, clientY } = e;
 
     setLastXY([clientX, clientY]);
-
-    console.log(clientX, clientY);
+    // console.log(clientX, clientY);
     return;
   };
+
+  useEffect(() => {
+    if (lastXY[0] !== null) {
+      const calculatedX = initialXY[0] - lastXY[0];
+      const calculatedY = initialXY[1] - lastXY[1];
+
+      let direction = null;
+      if (calculatedX === 0) {
+        // UP or DOWN
+        direction = calculatedY < 0 ? CASES.DOWN : CASES.UP;
+      } else if (calculatedY === 0) {
+        // LEFT or RIGHT
+        direction = calculatedX < 0 ? CASES.RIGHT : CASES.LEFT;
+      } else {
+        // Calculate the difference, if both x and y differ
+        const larger =
+          Math.abs(calculatedX) > Math.abs(calculatedY)
+            ? ['x', calculatedX]
+            : ['y', calculatedY];
+        if (larger[0] === 'x') {
+          direction = larger[1] < 0 ? CASES.RIGHT : CASES.LEFT;
+        } else if (larger[0] === 'y') {
+          direction = larger[1] < 0 ? CASES.DOWN : CASES.UP;
+        }
+        console.log('larger: ', larger);
+      }
+
+      dispatch({ type: direction });
+
+      console.log(`calcX: ${calculatedX}, calcY: ${calculatedY}`);
+    }
+  }, [lastXY[0]]);
 
   return (
     <div>

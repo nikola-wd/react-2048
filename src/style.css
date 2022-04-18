@@ -8,6 +8,7 @@ p {
   flex-wrap: wrap;
   width: calc(var(--grid-size) * var(--cell-size) * 1px);
   box-shadow: 0 0 0 1px red;
+  user-select: none;
 }
 
 .cell {
